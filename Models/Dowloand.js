@@ -1,7 +1,7 @@
 import mongoose from "mongoose";
 
 const dowloandSchema = new mongoose.Schema({
-    dowloandimage: {type: String}
+    dowloandimage: [String]
 });
 
 const Dowloand = mongoose.model('Dowloand', dowloandSchema);

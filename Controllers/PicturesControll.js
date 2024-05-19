@@ -5,22 +5,28 @@ import { uploadFile } from '../util/UploadFile.js';
 const addPicture = async(req, res) => {
     try {
         const body = req.body
-        const image = req.files.image;
+        const image = req.files;
 
         if(image && image.length > 0) {
-            const {dowloandURL} = await uploadFile(image[0])
+            const uploadPromises = image.map((file) => uploadFile(file.path))
+            const uploadResults = await Promise.all(uploadPromises)
 
-            const newPicture = await new Subida({
-                tema: body.tema,
-                image: dowloandURL
-            }).save()
-               return res.status(200).json({newPicture})
+            const newPictures = await Promise.all(uploadResults.map(result => {
+                return new Subida({
+                    tema: body.tema,
+                    image: result.secure_url
+                }).save();
+            }));
+
+            return res.status(200).json({ newPictures });
+        } else {
+            return res.status(400).json({ error: 'No images were uploaded' });
         }
     } catch (error) {
         console.error(error);
-        return res.status(500).json({ error: 'Hubo un error interno' });
+        return res.status(500).json({ error: 'Internal server error' });
     }
-}
+};
 
 const getAllPictures = async(req, res) => {
     try {

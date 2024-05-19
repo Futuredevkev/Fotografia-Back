@@ -1,10 +1,10 @@
 import express from 'express'
 import { addPicture, deleteAllPictures, deletePicture, getAllPictures, getFilters } from '../Controllers/PicturesControll.js'
 import { getReservas, addReserva, deleteReserva, DeleteAll } from '../Controllers/ReservaControll.js'
-import { upload } from '../util/Upload.js';
 import { register, user } from '../Controllers/LoginControll.js';
 import { addPictureDowloand, deleteAllPicturesDowloand, deletePictureDowloand, downloadAllFiles, getAllPicturesDowloand } from '../Controllers/DowloandsPicture.js';
-
+import multer from "multer";
+const upload = multer({ dest: 'uploads/' }); 
 
 const router = express.Router();
 
@@ -15,7 +15,7 @@ router.delete('/reserva-all', DeleteAll)
 
 // Pictures 
 
-router.post('/picture', upload.fields([{name: 'image', maxCount: 1}]), addPicture)
+router.post('/picture',upload.array('image'), addPicture)
 router.get('/pictures', getAllPictures)
 router.get('/filterPictures', getFilters)
 router.delete('/deletePicture/:pictureId', deletePicture)
@@ -23,16 +23,16 @@ router.delete('/deletePictures-all', deleteAllPictures)
 
 // Dowloands image 
 
-router.post('/dowloands', upload.fields([{name: 'dowloandimage', maxCount: 1}]), addPictureDowloand)
+router.post('/dowloands', upload.array('dowloandimage'), addPictureDowloand)
 router.get('/picturesDowloands', getAllPicturesDowloand)
 router.delete('/deletePictureDowloands/:pictureId', deletePictureDowloand)
 router.delete('/deletePicturesDowloands', deleteAllPicturesDowloand)
 router.get('/descargar-imagenes', async (req, res) => {
-    const outputDir = '/tmp'; // Ruta donde deseas guardar el archivo ZIP
+    const outputDir = '/tmp'; 
     const zipFilePath = await downloadAllFiles(outputDir);
 
     if (zipFilePath) {
-        res.download(zipFilePath, 'downloads.zip'); // Descargar el archivo ZIP con nombre "downloads.zip"
+        res.download(zipFilePath, 'downloads.zip'); 
     } else {
         res.status(500).send('Error al descargar archivos');
     }

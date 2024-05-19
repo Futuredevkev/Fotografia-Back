@@ -1,25 +1,27 @@
-import {ref, getDownloadURL, uploadBytesResumable} from 'firebase/storage'
-import {storage} from '../firebase.js'
-import sharp from 'sharp'
+// util/UploadFile.js
+import { v2 as cloudinary } from 'cloudinary';
 
-export async function uploadFile (file, folder, storageInstance) {
-    let fileBuffer = await sharp(file.buffer).resize({quality: 90, progressive: true }).toBuffer()
+cloudinary.config({ 
+    cloud_name: "dyijnjd5t", 
+    api_key: "698963257989265", 
+    api_secret: "mIfMkbJQQTQ0Yw4RvPdkdE1V_LQ" 
+});
 
-    const fileRef = ref(storage, `${folder}/${file.originalname + '' + Date.now()}`); // Cambia el nombre de la carpeta a 'downloads'
 
-    const fileMetaData = {
-        contentType: file.mimetype
-    }
+const uploadFile = (filePath) => {
+    return new Promise((resolve, reject) => {
+        cloudinary.uploader.upload(filePath, (error, result) => {
+            if (error) reject(error);
+            else resolve(result);
+        });
+    });
+};
 
-    const fileUploadPromise = uploadBytesResumable(
-        fileRef,
-        fileBuffer,
-        fileMetaData
-    )
+export { uploadFile };
 
-    await fileUploadPromise
 
-    const fileDowloandURL = await getDownloadURL(fileRef)
 
-    return {ref: fileRef, dowloandURL: fileDowloandURL}
-}
+
+   
+
+    
