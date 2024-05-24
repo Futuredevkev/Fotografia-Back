@@ -3,6 +3,8 @@ import { uploadFile } from "../util/UploadFile.js";
 import JSZip from "jszip";
 import fs from "fs";
 import path from "path";
+import fetch from "node-fetch"
+
 
 const addPictureDowloand = async (req, res) => {
   try {
@@ -61,44 +63,48 @@ const deleteAllPicturesDowloand = async (req, res) => {
   } catch (error) {}
 };
 
-const downloadAllFiles = async (outputDir) => {
+const downloadAllFiles = async (req, res) => {
   try {
-    // Verificar si el directorio de salida existe, si no, crearlo
-
+    const outputDir = '/tmp';
     if (!fs.existsSync(outputDir)) {
       fs.mkdirSync(outputDir, { recursive: true });
     }
 
-    const storageRef = ref(storage, "dowloands/"); // Referencia a la carpeta 'downloads'
-    const filesList = await listAll(storageRef); // Obtener la lista de archivos en la carpeta
-
+    const allPictures = await Dowloand.find();
     const zip = new JSZip();
 
     await Promise.all(
-      filesList.items.map(async (fileRef) => {
-        let fileName = path.basename(fileRef.name);
-        fileName = fileName.replace(/\d+$/, "");
-        const url = await getDownloadURL(fileRef);
-        const response = await fetch(url);
-        const fileData = await response.arrayBuffer();
-        zip.file(fileName, fileData); // Agregar el archivo al ZIP
+      allPictures.map(async (picture) => {
+        const pictureUrl = picture.dowloandimage;
+
+        const url = `${pictureUrl}`;
+        
+        if (typeof url === 'string') {
+          try {
+            console.log(`Fetching image from: ${url}`); 
+            const response = await fetch(url); 
+            const fileData = await response.arrayBuffer();
+            const fileName = path.basename(url);
+            zip.file(fileName, fileData);
+            console.log(`Added file to zip: ${fileName}`); 
+          } catch (error) {
+            console.error(`Error fetching image from ${url}:`, error);
+          }
+        } else {
+          console.error("Invalid URL:", url);
+        }
       })
     );
 
-    // Generar el archivo ZIP una vez que se hayan descargado todos los archivos
     const content = await zip.generateAsync({ type: "nodebuffer" });
-
-    // Escribir el archivo ZIP en el sistema de archivos del servidor
     const zipFilePath = path.join(outputDir, "downloads.zip");
     fs.writeFileSync(zipFilePath, content);
 
     console.log("Archivos descargados y empaquetados correctamente.");
-
-    // Devolver la ruta del archivo ZIP para que el usuario pueda descargarlo manualmente
-    return zipFilePath;
+    res.download(zipFilePath, 'downloads.zip');
   } catch (error) {
     console.error("Error al descargar archivos:", error);
-    return null;
+    res.status(500).json({ error: "Hubo un error interno" });
   }
 };
 

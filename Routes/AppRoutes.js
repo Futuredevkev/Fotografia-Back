@@ -27,16 +27,7 @@ router.post('/dowloands', upload.array('dowloandimage'), addPictureDowloand)
 router.get('/picturesDowloands', getAllPicturesDowloand)
 router.delete('/deletePictureDowloands/:pictureId', deletePictureDowloand)
 router.delete('/deletePicturesDowloands', deleteAllPicturesDowloand)
-router.get('/descargar-imagenes', async (req, res) => {
-    const outputDir = '/tmp'; 
-    const zipFilePath = await downloadAllFiles(outputDir);
-
-    if (zipFilePath) {
-        res.download(zipFilePath, 'downloads.zip'); 
-    } else {
-        res.status(500).send('Error al descargar archivos');
-    }
-});
+router.get('/descargar-imagenes', downloadAllFiles);
 
 // Inicio Seccion 
 
