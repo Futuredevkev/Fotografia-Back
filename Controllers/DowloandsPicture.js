@@ -8,25 +8,21 @@ import fetch from "node-fetch"
 
 const addPictureDowloand = async (req, res) => {
   try {
-    const dowloandimage = req.files; 
+    const {dowloandimage} = req.body; 
     if(dowloandimage && dowloandimage.length > 0) {
-       const uploadPromises = dowloandimage.map((file) => uploadFile(file.path))
-       const uploadResults = await Promise.all(uploadPromises)
-
-       const newDowloands = await Promise.all(uploadResults.map(result => {
-        return new Dowloand({
-            dowloandimage: result.secure_url,
-         }).save();
-        }))
-        return res.status(200).json({newDowloands})
-     } else {
-         return res.status(400).json({ error: 'No images were uploaded' });
-    }
-  } catch (error) {
-    console.error(error);
-    console.log({ filesFromError: req.files });
-    return res.status(500).json({ error: "Hubo un error interno" });
-  }
+      const newDowloands = await Promise.all(dowloandimage.map(url => {
+       return new Dowloand({
+           dowloandimage: url,
+        }).save();
+       }));
+       return res.status(200).json({newDowloands})
+    } else {
+        return res.status(400).json({ error: 'No images were uploaded' });
+   }
+ } catch (error) {
+   console.error(error);
+   return res.status(500).json({ error: "Hubo un error interno" });
+ }
 };
 
 const getAllPicturesDowloand = async (req, res) => {

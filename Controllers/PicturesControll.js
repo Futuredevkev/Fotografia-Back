@@ -1,32 +1,26 @@
 import Subida from '../Models/Subida.js'
-import { uploadFile } from '../util/UploadFile.js';
+
 
 
 const addPicture = async(req, res) => {
     try {
-        const body = req.body
-        const image = req.files;
+        const {image} = req.body;
 
         if(image && image.length > 0) {
-            const uploadPromises = image.map((file) => uploadFile(file.path))
-            const uploadResults = await Promise.all(uploadPromises)
-
-            const newPictures = await Promise.all(uploadResults.map(result => {
-                return new Subida({
-                    tema: body.tema,
-                    image: result.secure_url
-                }).save();
-            }));
-
-            return res.status(200).json({ newPictures });
-        } else {
-            return res.status(400).json({ error: 'No images were uploaded' });
-        }
-    } catch (error) {
-        console.error(error);
-        return res.status(500).json({ error: 'Internal server error' });
-    }
-};
+            const newDowloands = await Promise.all(image.map(url => {
+             return new Subida({
+                image: url,
+              }).save();
+             }));
+             return res.status(200).json({newDowloands})
+          } else {
+              return res.status(400).json({ error: 'No images were uploaded' });
+         }
+       } catch (error) {
+         console.error(error);
+         return res.status(500).json({ error: "Hubo un error interno" });
+       }
+      };
 
 const getAllPictures = async(req, res) => {
     try {
